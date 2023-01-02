@@ -96,3 +96,33 @@ class CategoryUuid(BaseModel):
     
     class Config:
         orm_mode = True
+        
+
+class NewExpense(BaseModel):
+    date: str
+    uuid_budget: str
+    uuid_category: str
+    name: str
+    amount: float
+    base_ccy: str
+    exchange_rate: float
+    
+    class Config:
+        orm_mode = True
+    
+    
+class Expense(NewExpense):
+    id: int
+    uuid: str
+    budget_ccy: str
+    budget_amount: float
+    
+    class Config:
+        orm_mode = True
+        
+class ExpenseUuid(BaseModel):
+    uuid: str
+    
+    class Config:
+        orm_mode = True
+

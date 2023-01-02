@@ -141,3 +141,46 @@ def delete_category_uuid(db: Session, data: schemas.CategoryUuid):
     db.delete(query)
     db.commit()
     return ["Done"]
+
+
+def add_expense_to_budget_category(db: Session, data: schemas.NewExpense):
+    budget = (db.query(models.Budget)
+            .filter(models.Budget.uuid == data.uuid_budget)
+            .order_by(models.Budget.id.desc()).first())
+    if not budget:
+        return  ["No existing budget with given ID"]
+    category = (db.query(models.Categories)
+            .filter(models.Categories.uuid == data.uuid_category)
+            .order_by(models.Categories.id.desc()).first())
+    if not category:
+        return  ["No existing category with given ID"]
+    if budget.base_ccy == data.base_ccy:
+        exchange_rate = 1.0
+    else:
+        exchange_rate = data.exchange_rate
+    budget_amount = exchange_rate * data.amount
+    new_expense = models.Expense(uuid_budget=data.uuid_budget,
+                                 uuid_category=data.uuid_category,
+                                 date=data.date,
+                                 name=data.name, 
+                                 amount=data.amount,
+                                 base_ccy=data.base_ccy,
+                                 exchange_rate=data.exchange_rate,
+                                 uuid=str(uuid.uuid4()),
+                                 budget_ccy=budget.base_ccy,
+                                 budget_amount=budget_amount)
+    db.add(new_expense)
+    db.commit()
+    db.refresh(new_expense)
+    return new_expense
+
+
+def delete_expense_by_uuid(db: Session, data: schemas.ExpenseUuid):
+    try:
+        query = (db.query(models.Expense)
+                .filter(models.Expense.uuid == data.uuid).one())
+    except NoResultFound:
+        return ["Nothing to remove"]
+    db.delete(query)
+    db.commit()
+    return ["Done"]
