@@ -184,3 +184,35 @@ def delete_expense_by_uuid(db: Session, data: schemas.ExpenseUuid):
     db.delete(query)
     db.commit()
     return ["Done"]
+
+
+def get_everything_tied_to_budget(db: Session, data: schemas.BudgetUuid, 
+                                       limit: int = 1000):
+    budget = (db.query(models.Budget)
+            .filter(models.Budget.uuid == data.uuid)
+            .order_by(models.Budget.id.desc()).first())
+    if not budget:
+        return  ["No existing budget with given ID"]
+    budget = vars(budget)
+    budget.pop('_sa_instance_state')
+    budget['categories'] = list()
+    categories = (db.query(models.Categories)
+                .filter(models.Categories.uuid_budget == data.uuid)
+                .limit(limit).all())
+    if len(categories) == 0:
+        return budget
+    for category in categories:
+        category = vars(category)
+        category.pop('_sa_instance_state')
+        category['expenses'] = list()
+        expenses = (db.query(models.Expense)
+                    .filter(models.Expense.uuid_category == category['uuid'])
+                    .limit(limit).all())
+        if len(expenses) == 0:
+            continue
+        for expense in expenses:
+            expense = vars(expense)
+            expense.pop('_sa_instance_state')
+            category['expenses'].append(expense)
+        budget['categories'].append(category)
+    return budget
