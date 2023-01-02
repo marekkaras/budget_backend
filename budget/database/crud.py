@@ -35,3 +35,15 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+def add_budget_for_user(db: Session, data: schemas.BudgetBase):
+    new_budget = models.Budget(username=data.username,
+                               amount=data.amount, 
+                               base_ccy=data.base_ccy,
+                               month=data.month,
+                               year=data.year)
+    db.add(new_budget)
+    db.commit()
+    db.refresh(new_budget)
+    return new_budget

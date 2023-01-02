@@ -73,6 +73,11 @@ async def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
 
 
-@app.get("/users/me/items/")
-async def read_own_items(current_user: User = Depends(get_current_active_user)):
-    return [{"item_id": "Foo", "owner": current_user.username}]
+@app.post("/add_budget_for_user/", response_model=schemas.Budget)
+def add_budget_for_user(data: schemas.BudgetBase, 
+                        db: Session = Depends(get_db),
+                        current_user: User = Depends(get_current_active_user)):
+    db_user = crud.get_user_by_username(db, username=data.username)
+    if not db_user:
+        raise HTTPException(status_code=400, detail="Username doesnt exist in database")
+    return crud.add_budget_for_user(db=db, data=data)
