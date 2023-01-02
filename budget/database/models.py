@@ -23,3 +23,13 @@ class Budget(Base):
     base_ccy = Column(String)
     month = Column(Integer)
     year = Column(Integer)
+
+
+class Categories(Base):
+    __tablename__ = "categories"
+    id = Column(Integer, primary_key=True, index=True)
+    uuid_budget = Column(String)
+    uuid = Column(String)
+    amount = Column(Float)
+    base_ccy = Column(String)
+    category_name = Column(String)

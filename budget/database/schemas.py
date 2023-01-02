@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-import typing
 
 
 class UserBase(BaseModel):
@@ -58,3 +57,42 @@ class Username(BaseModel):
 
 class AllBudgets(BaseModel):
     budgets: list
+
+
+class AllocateCategory(BaseModel):
+    username: str
+    uuid_budget: str
+    category_name: str
+    amount: float
+    
+    class Config:
+        orm_mode = True
+        
+
+class Categories(AllocateCategory):
+    id: int
+    uuid: str
+    
+    class Config:
+        orm_mode = True
+        
+
+class NewCategory(AllocateCategory):
+    uuid: str
+    
+    class Config:
+        orm_mode = True
+
+
+class BudgetUuid(BaseModel):
+    uuid: str
+    
+    class Config:
+        orm_mode = True
+        
+        
+class CategoryUuid(BaseModel):
+    uuid: str
+    
+    class Config:
+        orm_mode = True

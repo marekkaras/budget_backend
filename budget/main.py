@@ -102,4 +102,27 @@ def get_most_recent_budgets_for_user(data: schemas.Username,
         raise HTTPException(status_code=400, detail="Username doesnt exist in database")
     return crud.get_most_recent_user_budgets(db=db, data=data)
 
-    
+
+@app.post("/allocate_category_for_budget/")
+def allocate_category_for_budget(data: schemas.AllocateCategory, 
+                                 db: Session = Depends(get_db),
+                                 current_user: User = Depends(get_current_active_user)):
+    db_user = crud.get_user_by_username(db, username=data.username)
+    if not db_user:
+        raise HTTPException(status_code=400, detail="Username doesnt exist in database")
+    return crud.allocate_category_for_budget_uuid(db=db, data=data)
+
+
+@app.post("/get_categories_for_budget/")
+def get_categories_for_budget(data: schemas.BudgetUuid, 
+                              db: Session = Depends(get_db),
+                              current_user: User = Depends(get_current_active_user)):
+    return crud.get_all_categories_for_budget_uuid(db=db, data=data)
+
+
+@app.post("/remove_category_by_uuid/")
+def remove_category_by_uuid(data: schemas.CategoryUuid, 
+                            db: Session = Depends(get_db),
+                            current_user: User = Depends(get_current_active_user)):
+    return crud.delete_category_uuid(db=db, data=data)
+

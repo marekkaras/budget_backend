@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from budget.database import models, schemas
 from passlib.context import CryptContext
 from budget.database.database import SessionLocal
+from sqlalchemy.exc import NoResultFound
 
 
 def get_db():
@@ -38,7 +39,8 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
-def add_budget_for_user(db: Session, data: schemas.BudgetBase, limit: int = 1000):
+def add_budget_for_user(db: Session, data: schemas.BudgetBase, 
+                        limit: int = 1000):
     #  check if there was a budget a given month already, reuse uuid if so
     res = (db.query(models.Budget)
             .filter(models.Budget.month == data.month)
@@ -62,12 +64,17 @@ def add_budget_for_user(db: Session, data: schemas.BudgetBase, limit: int = 1000
 
 
 
-def get_user_budgets(db: Session, data: schemas.Username, limit: int = 1000):
-    return db.query(models.Budget).filter(models.Budget.username == data.username).limit(limit).all()
+def get_user_budgets(db: Session, data: schemas.Username, 
+                     limit: int = 1000):
+    return (db.query(models.Budget)
+            .filter(models.Budget.username == data.username)
+            .limit(limit).all())
 
 
-def get_most_recent_user_budgets(db: Session, data: schemas.Username, limit: int = 1000):
-    res = db.query(models.Budget).filter(models.Budget.username == data.username).limit(limit).all()
+def get_most_recent_user_budgets(db: Session, data: schemas.Username, 
+                                 limit: int = 1000):
+    res = (db.query(models.Budget)
+    .filter(models.Budget.username == data.username).limit(limit).all())
     recent_budgets = dict()
     for entry in res:
         if entry.uuid not in recent_budgets:
@@ -79,3 +86,58 @@ def get_most_recent_user_budgets(db: Session, data: schemas.Username, limit: int
     for v in recent_budgets.values():
         result.append(v)
     return result
+
+
+def allocate_category_for_budget_uuid(db: Session, 
+                                      data: schemas.AllocateCategory, 
+                                      limit: int = 1000):
+    #  Check if budget exsists
+    budget = (db.query(models.Budget)
+            .filter(models.Budget.username == data.username)
+            .filter(models.Budget.uuid == data.uuid_budget)
+            .order_by(models.Budget.id.desc()).first())
+    if not budget:
+        return  ["No existing budget with given ID"]
+    remaning_budget = budget.amount
+    #  Get all categories already tied to this budget
+    existing_categories = (db.query(models.Categories)
+                            .filter(models.Categories.uuid_budget 
+                                    == data.uuid_budget)
+                            .limit(limit).all())
+    #  Decrease remaining budget by already inserted categories
+    if len(existing_categories) > 0:
+        for existing_category in existing_categories:
+            remaning_budget -= existing_category.amount
+    #  Sanity check if cateory can be inserted
+    if data.amount > remaning_budget:
+        msg = f'{data.amount} is higher than remaning budget allowance of '
+        msg += f'{remaning_budget}'
+        return [msg]
+    #  Insert new category
+    new_category = models.Categories(uuid_budget=data.uuid_budget,
+                                      uuid=str(uuid.uuid4()),
+                                      amount=data.amount,
+                                      base_ccy=budget.base_ccy,
+                                      category_name=data.category_name)
+    db.add(new_category)
+    db.commit()
+    db.refresh(new_category)
+    return [new_category]
+
+
+def get_all_categories_for_budget_uuid(db: Session, data: schemas.BudgetUuid, 
+                                       limit: int = 1000):
+    return (db.query(models.Categories)
+            .filter(models.Categories.uuid_budget == data.uuid)
+            .limit(limit).all())
+    
+    
+def delete_category_uuid(db: Session, data: schemas.CategoryUuid):
+    try:
+        query = (db.query(models.Categories)
+                .filter(models.Categories.uuid == data.uuid).one())
+    except NoResultFound:
+        return ["Nothing to remove"]
+    db.delete(query)
+    db.commit()
+    return ["Done"]
