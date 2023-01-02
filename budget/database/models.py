@@ -17,6 +17,7 @@ class Budget(Base):
     __tablename__ = "budgets"
 
     id = Column(Integer, primary_key=True, index=True)
+    uuid = Column(String)
     username = Column(String)
     amount = Column(Float)
     base_ccy = Column(String)

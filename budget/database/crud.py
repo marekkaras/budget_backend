@@ -1,3 +1,4 @@
+import uuid
 from sqlalchemy.orm import Session
 from budget.database import models, schemas
 from passlib.context import CryptContext
@@ -37,8 +38,19 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
-def add_budget_for_user(db: Session, data: schemas.BudgetBase):
+def add_budget_for_user(db: Session, data: schemas.BudgetBase, limit: int = 1000):
+    #  check if there was a budget a given month already, reuse uuid if so
+    res = (db.query(models.Budget)
+            .filter(models.Budget.month == data.month)
+            .filter(models.Budget.year == data.year)
+            .filter(models.Budget.username == data.username)
+            .limit(limit).all())
+    if len(res) > 0:
+        uuid_to_be_used = res[0].uuid
+    else:
+        uuid_to_be_used = str(uuid.uuid4())
     new_budget = models.Budget(username=data.username,
+                               uuid=uuid_to_be_used,
                                amount=data.amount, 
                                base_ccy=data.base_ccy,
                                month=data.month,
@@ -47,3 +59,8 @@ def add_budget_for_user(db: Session, data: schemas.BudgetBase):
     db.commit()
     db.refresh(new_budget)
     return new_budget
+
+
+
+def get_user_budgets(db: Session, data: schemas.Username, limit: int = 1000):
+    return db.query(models.Budget).filter(models.Budget.username == data.username).limit(limit).all()
