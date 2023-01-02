@@ -64,3 +64,18 @@ def add_budget_for_user(db: Session, data: schemas.BudgetBase, limit: int = 1000
 
 def get_user_budgets(db: Session, data: schemas.Username, limit: int = 1000):
     return db.query(models.Budget).filter(models.Budget.username == data.username).limit(limit).all()
+
+
+def get_most_recent_user_budgets(db: Session, data: schemas.Username, limit: int = 1000):
+    res = db.query(models.Budget).filter(models.Budget.username == data.username).limit(limit).all()
+    recent_budgets = dict()
+    for entry in res:
+        if entry.uuid not in recent_budgets:
+            recent_budgets[entry.uuid] = entry
+        else:
+            if entry.id > recent_budgets[entry.uuid].id:
+                recent_budgets[entry.uuid] = entry
+    result = list()
+    for v in recent_budgets.values():
+        result.append(v)
+    return result
