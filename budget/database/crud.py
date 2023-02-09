@@ -4,6 +4,7 @@ from budget.database import models, schemas
 from passlib.context import CryptContext
 from budget.database.database import SessionLocal
 from sqlalchemy.exc import NoResultFound
+from budget.api_models.api_models import User
 
 
 def get_db():
@@ -220,3 +221,14 @@ def get_everything_tied_to_budget(db: Session, data: schemas.BudgetUuid,
             category['expenses'].append(expense)
         budget['categories'].append(category)
     return budget
+
+
+def get_full_user_history(db: Session, user: User):
+    all_budgets = get_user_budgets(db=db, data=schemas.Username(username=user.username))
+    if len(all_budgets) == 0:
+        return ['No user budgets found']
+    results = []
+    for budget in all_budgets:
+        results.append(get_everything_tied_to_budget(db=db,
+                                                    data=schemas.BudgetUuid(uuid=budget.uuid)))
+    return results
