@@ -63,7 +63,6 @@ class AllocateCategory(BaseModel):
     username: str
     uuid_budget: str
     category_name: str
-    amount: float
     
     class Config:
         orm_mode = True

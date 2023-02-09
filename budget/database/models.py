@@ -30,7 +30,6 @@ class Categories(Base):
     id = Column(Integer, primary_key=True, index=True)
     uuid_budget = Column(String)
     uuid = Column(String)
-    amount = Column(Float)
     base_ccy = Column(String)
     category_name = Column(String)
 

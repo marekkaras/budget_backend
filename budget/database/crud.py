@@ -46,21 +46,32 @@ def add_budget_for_user(db: Session, data: schemas.BudgetBase,
             .filter(models.Budget.month == data.month)
             .filter(models.Budget.year == data.year)
             .filter(models.Budget.username == data.username)
-            .limit(limit).all())
-    if len(res) > 0:
-        uuid_to_be_used = res[0].uuid
+            .limit(limit).first())
+    if res:
+        uuid_to_be_used = res.uuid
+        res.amount = data.amount
+        res.base_ccy = data.base_ccy
+        db.commit()
+        db.refresh(res)
     else:
         uuid_to_be_used = str(uuid.uuid4())
-    new_budget = models.Budget(username=data.username,
-                               uuid=uuid_to_be_used,
-                               amount=data.amount, 
-                               base_ccy=data.base_ccy,
-                               month=data.month,
-                               year=data.year)
-    db.add(new_budget)
-    db.commit()
-    db.refresh(new_budget)
-    return new_budget
+        res = models.Budget(username=data.username,
+                                   uuid=uuid_to_be_used,
+                                   amount=data.amount, 
+                                   base_ccy=data.base_ccy,
+                                   month=data.month,
+                                   year=data.year)
+        db.add(res)
+        db.commit()
+        db.refresh(res)
+    
+    #  Create basic categories for that budget
+    for cn in ['Bills', 'Food', 'Entertainment', 'Travel']:
+        allocate_category_for_budget_uuid(db=db,
+                                          data=schemas.AllocateCategory(username=data.username,
+                                                                        uuid_budget=res.uuid,
+                                                                        category_name=cn))
+    return res
 
 
 
@@ -98,31 +109,24 @@ def allocate_category_for_budget_uuid(db: Session,
             .order_by(models.Budget.id.desc()).first())
     if not budget:
         return  ["No existing budget with given ID"]
-    remaning_budget = budget.amount
-    #  Get all categories already tied to this budget
-    existing_categories = (db.query(models.Categories)
-                            .filter(models.Categories.uuid_budget 
-                                    == data.uuid_budget)
-                            .limit(limit).all())
-    #  Decrease remaining budget by already inserted categories
-    if len(existing_categories) > 0:
-        for existing_category in existing_categories:
-            remaning_budget -= existing_category.amount
-    #  Sanity check if cateory can be inserted
-    if data.amount > remaning_budget:
-        msg = f'{data.amount} is higher than remaning budget allowance of '
-        msg += f'{remaning_budget}'
-        return [msg]
     #  Insert new category
-    new_category = models.Categories(uuid_budget=data.uuid_budget,
-                                      uuid=str(uuid.uuid4()),
-                                      amount=data.amount,
-                                      base_ccy=budget.base_ccy,
-                                      category_name=data.category_name)
-    db.add(new_category)
-    db.commit()
-    db.refresh(new_category)
-    return [new_category]
+    res = (db.query(models.Categories)
+            .filter(models.Categories.uuid_budget == data.uuid_budget)
+            .filter(models.Categories.category_name == data.category_name)
+            .limit(limit).first())
+    if res:
+        res.category_name = data.category_name
+        db.commit()
+        db.refresh(res)
+    else:
+        res = models.Categories(uuid_budget=data.uuid_budget,
+                                uuid=str(uuid.uuid4()),
+                                base_ccy=budget.base_ccy,
+                                category_name=data.category_name)
+        db.add(res)
+        db.commit()
+        db.refresh(res)
+    return [res]
 
 
 def get_all_categories_for_budget_uuid(db: Session, data: schemas.BudgetUuid, 

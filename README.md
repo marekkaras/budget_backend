@@ -104,3 +104,9 @@ or more precisely:
 http://0.0.0.0:8045/docs
 ```
 to see all avilable endpoints.
+
+
+you can also run below script to generate test user with some random data being populated
+```
+python generate_test_user.py
+```
