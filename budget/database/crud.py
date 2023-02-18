@@ -239,6 +239,40 @@ def get_everything_tied_to_budget(db: Session, data: schemas.BudgetUuid,
     return budget
 
 
+def get_category_stats(db: Session, data: schemas.BudgetUuid,
+                       limit: int = 1000):
+    budget = (db.query(models.Budget)
+            .filter(models.Budget.uuid == data.uuid)
+            .order_by(models.Budget.id.desc()).first())
+    if not budget:
+        return  ["No existing budget with given ID"]
+    budget = vars(budget)
+    budget.pop('_sa_instance_state')
+    budget['categories'] = list()
+    categories = (db.query(models.Categories)
+                .filter(models.Categories.uuid_budget == data.uuid)
+                .limit(limit).all())
+    if len(categories) == 0:
+        return budget
+    for category in categories:
+        category = vars(category)
+        category.pop('_sa_instance_state')
+        category['spent'] = 0.0
+        category['remaining'] = category['amount']
+        expenses = (db.query(models.Expense)
+                    .filter(models.Expense.uuid_category == category['uuid'])
+                    .limit(limit).all())
+        if not len(expenses) == 0:
+            for expense in expenses:
+                expense = vars(expense)
+                expense.pop('_sa_instance_state')
+                category['spent'] += expense['budget_amount']
+                category['remaining'] -= expense['budget_amount']
+        budget['categories'].append(category)
+    return budget
+    
+    
+
 def get_full_user_history(db: Session, user: User):
     all_budgets = get_user_budgets(db=db, data=schemas.Username(username=user.username))
     if len(all_budgets) == 0:
@@ -247,4 +281,16 @@ def get_full_user_history(db: Session, user: User):
     for budget in all_budgets:
         results.append(get_everything_tied_to_budget(db=db,
                                                     data=schemas.BudgetUuid(uuid=budget.uuid)))
+    return results
+
+
+def get_full_categories_summary(db: Session, user: User):
+    all_budgets = get_user_budgets(db=db, data=schemas.Username(username=user.username))
+    if len(all_budgets) == 0:
+        return ['No user budgets found']
+    results = []
+    for budget in all_budgets:
+        results.append(get_category_stats(db=db,
+                                          data=schemas.BudgetUuid(uuid=budget.uuid)))
+    
     return results

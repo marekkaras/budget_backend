@@ -159,3 +159,9 @@ def get_budget_summary(data: schemas.BudgetUuid,
 def get_user_history(db: Session = Depends(get_db),
                      current_user: User = Depends(get_current_active_user)):
     return crud.get_full_user_history(db=db, user=current_user)
+
+
+@app.post("/get_categories_summary/")
+def get_categories_summary(db: Session = Depends(get_db),
+                           current_user: User = Depends(get_current_active_user)):
+    return crud.get_full_categories_summary(db=db, user=current_user)
