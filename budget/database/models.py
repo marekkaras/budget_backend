@@ -32,6 +32,7 @@ class Categories(Base):
     uuid = Column(String)
     base_ccy = Column(String)
     category_name = Column(String)
+    amount = Column(Float)
 
 
 class Expense(Base):

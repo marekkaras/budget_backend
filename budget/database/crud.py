@@ -71,7 +71,8 @@ def add_budget_for_user(db: Session, data: schemas.BudgetBase,
         allocate_category_for_budget_uuid(db=db,
                                           data=schemas.AllocateCategory(username=data.username,
                                                                         uuid_budget=res.uuid,
-                                                                        category_name=cn))
+                                                                        category_name=cn,
+                                                                        amount=0.0))
     return res
 
 
@@ -123,11 +124,26 @@ def allocate_category_for_budget_uuid(db: Session,
         res = models.Categories(uuid_budget=data.uuid_budget,
                                 uuid=str(uuid.uuid4()),
                                 base_ccy=budget.base_ccy,
-                                category_name=data.category_name)
+                                category_name=data.category_name,
+                                amount=data.amount)
         db.add(res)
         db.commit()
         db.refresh(res)
     return [res]
+
+
+def update_category_by_id(db: Session, 
+                          data: schemas.UpdateCategory, 
+                          limit: int = 1000):
+    category = (db.query(models.Categories)
+                .filter(models.Categories.uuid == data.uuid).first())
+    if not category:
+        return f'Unable to find category with uuid: {data.uuid}'
+    category.category_name = data.category_name
+    category.amount = data.amount
+    db.commit()
+    db.refresh(category)
+    return f'Category with uuid {data.uuid} updated'
 
 
 def get_all_categories_for_budget_uuid(db: Session, data: schemas.BudgetUuid, 

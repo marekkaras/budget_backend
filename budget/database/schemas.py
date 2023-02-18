@@ -63,6 +63,7 @@ class AllocateCategory(BaseModel):
     username: str
     uuid_budget: str
     category_name: str
+    amount: float
     
     class Config:
         orm_mode = True
@@ -78,6 +79,15 @@ class Categories(AllocateCategory):
 
 class NewCategory(AllocateCategory):
     uuid: str
+    
+    class Config:
+        orm_mode = True
+        
+
+class UpdateCategory(BaseModel):
+    uuid: str
+    category_name: str
+    amount: float
     
     class Config:
         orm_mode = True

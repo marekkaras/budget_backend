@@ -64,6 +64,20 @@ print(response.text)
 categories = json.loads(response.text)
 
 
+#  Update category amount
+for cat in categories:
+    user_data = {
+          "uuid": cat['uuid'],
+          "category_name": cat['category_name'],
+          "amount": 500
+        }
+    response = requests.post('http://127.0.0.1:8045/update_category_by_uuid/',
+                                json=user_data,        
+                                headers={'Authorization':token_data,
+                                        'content-type':'application/json',
+                                         'accept':'application/json'},)
+    print(response.text)
+
 #  Add some random expenses
 for cat in categories:
     print(cat)

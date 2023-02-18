@@ -127,6 +127,13 @@ def remove_category_by_uuid(data: schemas.CategoryUuid,
     return crud.delete_category_uuid(db=db, data=data)
 
 
+@app.post("/update_category_by_uuid/")
+def update_category_by_uuid(data: schemas.UpdateCategory, 
+                            db: Session = Depends(get_db),
+                            current_user: User = Depends(get_current_active_user)):
+    return crud.update_category_by_id(db=db, data=data)
+
+
 @app.post("/add_new_expense/")
 def add_new_expense(data: schemas.NewExpense, 
                     db: Session = Depends(get_db),
