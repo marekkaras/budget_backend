@@ -40,13 +40,13 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
-def add_budget_for_user(db: Session, data: schemas.BudgetBase, 
+def add_budget_for_user(db: Session, data: schemas.BudgetBase, username: str,
                         limit: int = 1000):
     #  check if there was a budget a given month already, reuse uuid if so
     res = (db.query(models.Budget)
             .filter(models.Budget.month == data.month)
             .filter(models.Budget.year == data.year)
-            .filter(models.Budget.username == data.username)
+            .filter(models.Budget.username == username)
             .limit(limit).first())
     if res:
         uuid_to_be_used = res.uuid
@@ -56,12 +56,12 @@ def add_budget_for_user(db: Session, data: schemas.BudgetBase,
         db.refresh(res)
     else:
         uuid_to_be_used = str(uuid.uuid4())
-        res = models.Budget(username=data.username,
-                                   uuid=uuid_to_be_used,
-                                   amount=data.amount, 
-                                   base_ccy=data.base_ccy,
-                                   month=data.month,
-                                   year=data.year)
+        res = models.Budget(username=username,
+                            uuid=uuid_to_be_used,
+                            amount=data.amount, 
+                            base_ccy=data.base_ccy,
+                            month=data.month,
+                            year=data.year)
         db.add(res)
         db.commit()
         db.refresh(res)
@@ -69,7 +69,7 @@ def add_budget_for_user(db: Session, data: schemas.BudgetBase,
     #  Create basic categories for that budget
     for cn in ['Bills', 'Food', 'Entertainment', 'Travel']:
         allocate_category_for_budget_uuid(db=db,
-                                          data=schemas.AllocateCategory(username=data.username,
+                                          data=schemas.AllocateCategory(username=username,
                                                                         uuid_budget=res.uuid,
                                                                         category_name=cn,
                                                                         amount=0.0))

@@ -77,10 +77,10 @@ async def read_users_me(current_user: User = Depends(get_current_active_user)):
 def add_budget_for_user(data: schemas.BudgetBase, 
                         db: Session = Depends(get_db),
                         current_user: User = Depends(get_current_active_user)):
-    db_user = crud.get_user_by_username(db, username=data.username)
+    db_user = crud.get_user_by_username(db, username=current_user.username)
     if not db_user:
         raise HTTPException(status_code=400, detail="Username doesnt exist in database")
-    return crud.add_budget_for_user(db=db, data=data)
+    return crud.add_budget_for_user(db=db, data=data, username=current_user.username)
 
 
 @app.post("/delete_budget_for_user/")

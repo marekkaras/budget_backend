@@ -30,7 +30,6 @@ class User(UserBase):
 
 
 class BudgetBase(BaseModel):
-    username: str
     amount: float
     base_ccy: str
     month: int
