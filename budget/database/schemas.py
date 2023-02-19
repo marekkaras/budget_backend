@@ -38,6 +38,13 @@ class BudgetBase(BaseModel):
     
     class Config:
         orm_mode = True
+        
+
+class DeleteBudget(BaseModel):
+    uuid: str
+    
+    class Config:
+        orm_mode = True
 
 
 class Budget(BudgetBase):

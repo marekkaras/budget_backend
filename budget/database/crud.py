@@ -76,6 +76,29 @@ def add_budget_for_user(db: Session, data: schemas.BudgetBase,
     return res
 
 
+def delete_budget_for_user_by_uuid(db: Session, data: schemas.DeleteBudget,
+                                   limit: int = 1000):
+    res = (db.query(models.Budget)
+            .filter(models.Budget.uuid == data.uuid)
+            .limit(limit).first())
+    if not res:
+        return 'Nothing to delete'
+    res = (db.delete(res))
+    db.commit()
+    res = (db.query(models.Categories)
+            .filter(models.Categories.uuid_budget == data.uuid)
+            .limit(limit).all())
+    for r in res:
+        (db.delete(r))
+        db.commit()
+    res = (db.query(models.Expense)
+            .filter(models.Expense.uuid_budget == data.uuid)
+            .limit(limit).all())
+    for r in res:
+        (db.delete(r))
+        db.commit()
+    return 'Budget deleted'
+
 
 def get_user_budgets(db: Session, data: schemas.Username, 
                      limit: int = 1000):

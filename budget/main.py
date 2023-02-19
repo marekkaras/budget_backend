@@ -83,6 +83,13 @@ def add_budget_for_user(data: schemas.BudgetBase,
     return crud.add_budget_for_user(db=db, data=data)
 
 
+@app.post("/delete_budget_for_user/")
+def delete_budget_for_user(data: schemas.DeleteBudget, 
+                           db: Session = Depends(get_db),
+                           current_user: User = Depends(get_current_active_user)):
+    return crud.delete_budget_for_user_by_uuid(db=db, data=data)
+
+
 @app.post("/get_budgets_for_user/")
 def get_budgets_for_user(data: schemas.Username, 
                      db: Session = Depends(get_db),
