@@ -65,14 +65,13 @@ def add_budget_for_user(db: Session, data: schemas.BudgetBase, username: str,
         db.add(res)
         db.commit()
         db.refresh(res)
-    
-    #  Create basic categories for that budget
-    for cn in ['Bills', 'Food', 'Entertainment', 'Travel']:
-        allocate_category_for_budget_uuid(db=db,
-                                          data=schemas.AllocateCategory(username=username,
-                                                                        uuid_budget=res.uuid,
-                                                                        category_name=cn,
-                                                                        amount=0.0))
+        #  Create basic categories for that budget
+        for cn in ['Bills', 'Food', 'Entertainment', 'Travel']:
+            allocate_category_for_budget_uuid(db=db,
+                                              data=schemas.AllocateCategory(username=username,
+                                                                            uuid_budget=res.uuid,
+                                                                            category_name=cn,
+                                                                            amount=0.0))
     return res
 
 
