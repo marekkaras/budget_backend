@@ -270,12 +270,11 @@ def get_everything_tied_to_budget(db: Session, data: schemas.BudgetUuid,
         expenses = (db.query(models.Expense)
                     .filter(models.Expense.uuid_category == category['uuid'])
                     .limit(limit).all())
-        if len(expenses) == 0:
-            continue
-        for expense in expenses:
-            expense = vars(expense)
-            expense.pop('_sa_instance_state')
-            category['expenses'].append(expense)
+        if not len(expenses) == 0:
+            for expense in expenses:
+                expense = vars(expense)
+                expense.pop('_sa_instance_state')
+                category['expenses'].append(expense)
         budget['categories'].append(category)
     return budget
 
