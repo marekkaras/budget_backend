@@ -127,6 +127,18 @@ class NewExpense(BaseModel):
         orm_mode = True
     
     
+class UpdateExpense(BaseModel):
+    uuid: str
+    date: str
+    name: str
+    amount: float
+    base_ccy: str
+    exchange_rate: float
+    
+    class Config:
+        orm_mode = True
+        
+    
 class Expense(NewExpense):
     id: int
     uuid: str

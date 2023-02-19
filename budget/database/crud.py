@@ -219,6 +219,24 @@ def add_expense_to_budget_category(db: Session, data: schemas.NewExpense):
     return new_expense
 
 
+def update_expense_by_id(db: Session, 
+                         data: schemas.UpdateExpense, 
+                         limit: int = 1000):
+    expense = (db.query(models.Expense)
+                .filter(models.Expense.uuid == data.uuid).first())
+    if not expense:
+        return f'Unable to find expense with uuid: {data.uuid}'
+    expense.date = data.date
+    expense.name = data.name
+    expense.amount = data.amount
+    expense.base_ccy = data.base_ccy
+    expense.exchange_rate = data.exchange_rate
+    expense.budget_amount = data.exchange_rate * data.amount
+    db.commit()
+    db.refresh(expense)
+    return f'Expense with uuid {data.uuid} updated'
+
+
 def delete_expense_by_uuid(db: Session, data: schemas.ExpenseUuid):
     try:
         query = (db.query(models.Expense)

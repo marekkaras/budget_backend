@@ -154,6 +154,12 @@ def delete_expense(data: schemas.ExpenseUuid,
                     current_user: User = Depends(get_current_active_user)):
     return crud.delete_expense_by_uuid(db=db, data=data)
 
+@app.post("/update_expense/")
+def update_expense(data: schemas.UpdateExpense, 
+                    db: Session = Depends(get_db),
+                    current_user: User = Depends(get_current_active_user)):
+    return crud.update_expense_by_id(db=db, data=data)
+
 
 @app.post("/get_budget_summary/")
 def get_budget_summary(data: schemas.BudgetUuid, 
