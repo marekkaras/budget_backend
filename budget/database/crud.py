@@ -5,6 +5,7 @@ from passlib.context import CryptContext
 from budget.database.database import SessionLocal
 from sqlalchemy.exc import NoResultFound
 from budget.api_models.api_models import User
+import re
 
 
 def get_db():
@@ -29,6 +30,19 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
 
 
 def create_user(db: Session, user: schemas.UserCreate):
+    
+    if len(user.username) == 0:
+        return "Incorrect login entered"
+    
+    if len(user.full_name) == 0:
+        return "Incorrect full name entered"
+    
+    if len(user.password) == 0:
+        return "Incorrect password entered"
+    
+    regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
+    if not re.fullmatch(regex, user.email):
+        return "Invalid email address entered"
     db_user = models.User(username=user.username,
                           email=user.email, 
                           full_name=user.full_name,

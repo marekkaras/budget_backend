@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import List
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from budget.api_models.api_models import Token, User
@@ -46,12 +46,15 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@app.post("/create_user/", response_model=schemas.User)
+@app.post("/create_user/")
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_username(db, username=user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")
-    return crud.create_user(db=db, user=user)
+    res = crud.create_user(db=db, user=user)
+    if type(res) == str:
+        raise HTTPException(status_code=400, detail=res)
+    return res
 
 
 @app.get("/get_all_users/", response_model=List[schemas.User])
