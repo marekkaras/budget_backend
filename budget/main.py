@@ -36,7 +36,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail=f'Incorrect username or password',
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -55,20 +55,6 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     if type(res) == str:
         raise HTTPException(status_code=400, detail=res)
     return res
-
-
-@app.get("/get_all_users/", response_model=List[schemas.User])
-def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    users = crud.get_users(db, skip=skip, limit=limit)
-    return users
-
-
-@app.get("/get_user/{username}", response_model=schemas.User)
-def read_user(username: str, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_username(db, username=username)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return db_user
 
 
 @app.get("/users/me/", response_model=User)

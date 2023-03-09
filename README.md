@@ -110,3 +110,22 @@ you can also run below script to generate test user with some random data being 
 ```
 python generate_test_user.py
 ```
+
+after your test user is generated feel free to run unit test using pytest
+```
+pytest
+```
+
+it should give you output like:
+```
+================================================================================ test session starts ================================================================================
+platform linux -- Python 3.9.15, pytest-7.2.2, pluggy-1.0.0
+rootdir: 
+plugins: anyio-3.6.2
+collected 2 items                                                                                                                                                                   
+
+test_main.py ..                                                                                                                                                               [100%]
+
+================================================================================= 2 passed in 0.68s =================================================================================
+
+```

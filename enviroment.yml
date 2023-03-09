@@ -23,3 +23,5 @@ dependencies:
     - pydantic
     - databases[asyncpg]
     - databases[aiosqlite]
+    - httpx
+    - pytest
