@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from budget.database.models import Base
+#from budget.database.models import Base
 from budget.database.crud import get_db
 from budget.main import app
 from budget.database import models
@@ -16,7 +16,7 @@ engine = create_engine(
 TestingSessionLocal = sessionmaker(
     autocommit=False, autoflush=False, bind=engine)
 
-Base.metadata.create_all(bind=engine)
+models.Base.metadata.create_all(bind=engine)
 
 
 def override_get_db():
@@ -25,16 +25,6 @@ def override_get_db():
         yield db
     finally:
         db.close()
-
-    user = models.User(
-        username="test_user",
-        email="test_user@example.com",
-        hashed_password="password",
-        full_name="Test User",
-        disabled=False
-    )
-
-    return {"user": user, "token": "test_token"}
 
 
 app.dependency_overrides[get_db] = override_get_db
@@ -47,8 +37,8 @@ def db():
     session = TestingSessionLocal()
     yield session
     session.close()
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
+    models.Base.metadata.drop_all(bind=engine)
+    models.Base.metadata.create_all(bind=engine)
 
 
 def test_create_user(db):

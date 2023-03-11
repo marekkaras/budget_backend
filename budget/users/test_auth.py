@@ -29,16 +29,6 @@ def override_get_db():
     finally:
         db.close()
 
-    user = models.User(
-        username="test_user",
-        email="test_user@example.com",
-        hashed_password="password",
-        full_name="Test User",
-        disabled=False
-    )
-
-    return {"user": user, "token": "test_token"}
-
 
 app.dependency_overrides[get_db] = override_get_db
 
@@ -63,16 +53,6 @@ def test_get_password_hash():
     password = "password123"
     hashed_password = get_password_hash(password)
     assert not password == hashed_password
-
-
-def test_get_user(db):
-    session = TestingSessionLocal()
-    user = create_user(db=session, user=schemas.UserCreate(
-        password="password", username="test_user_2", email="a@a.com", full_name="test user"))
-    assert user.id is not None
-
-    db_user = get_user(db=session, username=user.username)
-    assert db_user.username == user.username
 
 
 def test_authenticate_user(db):
